@@ -5,3 +5,5 @@
 2bis. Create unit tests for this methods
 3. Convert Dtos to "metier" data an item has its price, a customer object too
 4. Compute Discount in other way (think about it later)
+    - ShoppingItemService
+    - ShoppingCustomerService

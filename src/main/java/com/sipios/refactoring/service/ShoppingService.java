@@ -13,10 +13,9 @@ import com.sipios.refactoring.controller.Item;
 public class ShoppingService {
 
     private Logger logger = LoggerFactory.getLogger(ShoppingService.class);
+    private ShoppingItemService shoppingItemService = new ShoppingItemService();
 
     public double getPrice(Body b) throws Exception {
-        double p = 0;
-
         // Compute discount for customer
         double d = getCustomerDisount(b.getType());
 
@@ -24,40 +23,17 @@ public class ShoppingService {
             return 0;
         }
 
-        // Compute total amount depending on the types and quantity of product and
-        // if we are in winter or summer discounts periods
-        if (isDiscountPeriod()) {
-            for (int i = 0; i < b.getItems().length; i++) {
-                Item it = b.getItems()[i];
+        Date date = new Date();
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Paris"));
+        cal.setTime(date);
 
-                if (it.getType().equals("TSHIRT")) {
-                    p += 30 * it.getNb() * d;
-                } else if (it.getType().equals("DRESS")) {
-                    p += 50 * it.getNb() * 0.8 * d;
-                } else if (it.getType().equals("JACKET")) {
-                    p += 100 * it.getNb() * 0.9 * d;
-                }
-                // else if (it.getType().equals("SWEATSHIRT")) {
-                // price += 80 * it.getNb();
-                // }
-            }
-
-        } else {
-            for (int i = 0; i < b.getItems().length; i++) {
-                Item it = b.getItems()[i];
-
-                if (it.getType().equals("TSHIRT")) {
-                    p += 30 * it.getNb() * d;
-                } else if (it.getType().equals("DRESS")) {
-                    p += 50 * it.getNb() * d;
-                } else if (it.getType().equals("JACKET")) {
-                    p += 100 * it.getNb() * d;
-                }
-                // else if (it.getType().equals("SWEATSHIRT")) {
-                // price += 80 * it.getNb();
-                // }
-            }
+        double p = 0;
+        for (Item item : b.getItems()) {
+            p += shoppingItemService.getPrice(item, cal);
         }
+
+        // Apply customer discount
+        p *= d;
 
         checkCustomerMaxPriceCart(b.getType(), p);
         return p;
@@ -94,16 +70,6 @@ public class ShoppingService {
                 throw new Exception("Price (" + cartPrice + ") is too high for standard customer");
             }
         }
-    }
-
-    private boolean isDiscountPeriod() {
-        Date date = new Date();
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Paris"));
-        cal.setTime(date);
-        return (cal.get(Calendar.DAY_OF_MONTH) < 15 && cal.get(Calendar.DAY_OF_MONTH) > 5
-                && cal.get(Calendar.MONTH) == 5)
-                || (cal.get(Calendar.DAY_OF_MONTH) < 15 && cal.get(Calendar.DAY_OF_MONTH) > 5
-                        && cal.get(Calendar.MONTH) == 0);
     }
 
 }
